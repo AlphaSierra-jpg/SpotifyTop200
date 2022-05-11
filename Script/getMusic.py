@@ -3,11 +3,12 @@ from datetime import date, timedelta
 import datetime
 import csv
 import pymongo
-import os
 import time
+import threading
+from colorama import Fore
 
 tic = time.perf_counter()
-cookie = 'cf_chl_2=; cf_chl_prog=; cf_clearance=AWRlxfh1KnSojc35r5mAi49AX4KTPF4YXj1r595DUCI-1652182137-0-150; 850bcede40217f5e29cd09097cc083f9f306638a=eyJpdiI6IklqQ1FGSzdvNk43ek1oWEdPVnRmUlE9PSIsInZhbHVlIjoiVW1GWmpTQWxoZlB6b1hxdmpZODN4czRDR3hKYTdMK3JmSlZcL1hVSmNKbHYwN3lLYjZmbWJHc1VqaTJhQUpqRWdCeU9rN0JSUUttYXk3WFl2Q05TQ24yWVhxcmd6KzZcL0VUUUd2VXlZbTlSOUJUUGprV3BzYm9vRVpqZjBLVVBFTmRSblwvQVhcLzF6VFZuN1wvZHZzYVdRSjhHY3o4TitONG9CRmw3ZjhnQVlNWWFNNHFTb0lXWHhDRExVWEdrazZBRDFrbVp1MVBKWVhcL0tWUHhVWjk2S0VxcUM0R1dqWVh2YVJ1OEZaUVRoc282RDhISUtOZnRSWlBnVTJkbmpvcml1VmZIbXJRcnlWOVdDN0trV0FHWEVzTkZxelFzRWx0K29vME5VMTlzUXdvSDdlOE5abVloQ2FuWmFESE50SEF3RTRha2d0RUloemhQSTIzckRRa0REdnZXM1wvTDJDWTB4MWZBRUNncXprVzJyamhHc2ppKzd5TE5BNWFrdVwvTkhvTEhRVStaYlRiNXN1Zlk2ZUpXejNJK3pIT0ZyOWhwWUVUM3FBem5TQ3lGMzZlVkNsVytSU00zNlVjZ25TUUhBRGQyZXB6dXF6WFZEc00ycituYkowWmJsb1dhYkVCb2N0SDg0MVA1ZHhYQkI2RXVhQnlnR1NGTnRCMmtIK2RzMEQ2ZyIsIm1hYyI6IjNhNzgzZmRjYjVlMDg2MTEzYWQ5ZmYzNjFkNTRhYzI1N2ZkZTdmOGJlNDkwMDEyNGQ3ZjExNDk1ODljNGQzODQifQ%3D%3D; X-Mapping-kjhgfmmm=9343FCBF8CF03218178FBD7548D564F1; XSRF-TOKEN=eyJpdiI6Im1Ca0VHMFVQblh5RjVrK0xFQTJ2amc9PSIsInZhbHVlIjoiWXJBaEFRc3lCcE11MURNMzdwWXR6WlMrV3hlVGw3bzRnOWJ6UUJkUnpkNlN1YU1BN2Q1cWxnOUhOZXArRitid0RTMEFocjY0SE9UMGczbTBFS2syRkE9PSIsIm1hYyI6ImZjZTZiMTU0YTQzZjVhMDBhN2NhNDZiYjcxMTU2Y2MwZjU3YTk3NjVkOGVmY2JjNWE4MGE3NjdhYjViYTNkMWQifQ%3D%3D; laravel_session=eyJpdiI6IlNuVnpkblJZb29DVGM1UjYwdEJJb0E9PSIsInZhbHVlIjoiYmJHZ3lsMnFhVjNBZjdFTE5ZVlFnZElieW9yRXhZSGhDZ2tNOWRUYXlJdU1rXC9sTjQxZTJmRjM0cDFFeTQ2SzE0NW5QTFBGUDk0TUZMWUthV3NQdVNnPT0iLCJtYWMiOiJkNzYyNjQ5ZDZkMWNiMDc2NWM3YWY0OWMzNDhhZDE5YTY0ZmRlOWZiYzM0OGFkZTIyNDlhNzYzOGU3MDkyZjMxIn0%3D; cf_chl_prog=x11; cf_chl_2=c62a84d06e9ab5a; cf_chl_rc_m='
+cookie = 'cf_chl_2=; cf_chl_prog=; cf_clearance=ZzCgM7vF5._t_cXizBcqJsUrXzv9aFTB3by9BGnrIuE-1652263317-0-150; 850bcede40217f5e29cd09097cc083f9f306638a=eyJpdiI6IjBZV0ZvMmNEVWxGUml5MHVzdDhjamc9PSIsInZhbHVlIjoic0FET0g1NmZUN1gzTEpTYkJodkRVaE9uY1c2YzU4b2cwNnk0YlY5eWhDK0IyS1RLcVwva0VINXJ6RWowTnI2YlpaT1VCMXQzTTZYajl3VmoxWlwvMkFjVlE2UWIxM0R6OEtWSU9oM3NPcmJOMHVoN0hTY3FsRWg4NlRzZE9GNHV3dlhwRkE2MWNxSDEwV205VVpsYjVOXC9NZ3owVTF6aVpaQ0JUdHZzeUJyYjJDdE11NTVWXC80d2g2WFhITVU2OE5maG1MR0wrd0NNS0ticTlTTkJYZVA5dWF5QzE0YnJtVnJQTXdjQW5QcmQ4Y05pRXFtUGllenJhb2pIUnZid0dsZG1jNlMxMkhNM3ZzdVVjUXlCQU1OV0pFRUJ3cm9cL3NcL0FRSGEyM0VIeXgzeG1zdUtxczg2OGJtaEdTZFFzK2t4Nm4wMjVnd1BuSUxCWU9FXC9tWDViWVNLWGNkWmRreFdxYzlITUVGSTFLSWRHXC9xY2w4ZENLdDVBdDRyZGxZYUo0cWhrc0xCVElPNmhhOCtLWHROZVBmMm0rejdQSm41aFJ0dTRRMm8xTDJxMmFXMWs1cVE1akJ5Z09rZVdTUldraFdhRmNxdzIybmtMY0I5TjdPZlJKdWtoaU9QdmlMNkhTclFKTDE3VGc2RHh2MVdoRWN5SUcwM1c2eE1xVTNZcnRSTyIsIm1hYyI6IjQ3ODAyMGJlYjEwNTJmOTZkMDY2MzdjNTUwNGIyMWQwNWViNzhjMmQyZjUzMTQyYzQ5ZjUwNWU2MDM5NjkzNjgifQ%3D%3D; X-Mapping-kjhgfmmm=9343FCBF8CF03218178FBD7548D564F1; XSRF-TOKEN=eyJpdiI6ImdVUVh1WU1Fc0dBTnExXC9odDVSbTh3PT0iLCJ2YWx1ZSI6InV4REZaSVJvT040TEo1U3BjMW1ZMGpoQzcrQWQ5QkcxSlJLSXR3dWJlWkV0R2duOVZ0V3FCUXBYSkVKRkl5SlpaY2VHalphN0pPbHNHQitVSmJ2WkpnPT0iLCJtYWMiOiJjODQ2MmNkYzU2ZDVjNGI5NmExMTVlZGM5NzE4N2E1MzUwMTM3ZmRiZjhhZGMwMTkxNWExOGQ2MjAzM2E1NTc4In0%3D; laravel_session=eyJpdiI6Im9SUkNVS09XWnhKN1dpMUdSdFkxdWc9PSIsInZhbHVlIjoiR3ZTTzRTUFlPN3pCKzFtZFVaNzRQZXFMd1hydEJEQVF2cW1oN08zK0pXQVR2OEtJUmFFa3NYK0dyXC9aVlltTGhQMytMblZWcklDMU9jeDRQNUp2cjdRPT0iLCJtYWMiOiI0NjdiZTQ2OGEwZjY1YTI1MjEyZTQ5MDM4ODAyMmUwNTBhNDcyZTI5N2M5MGViZjRmMWUxYTgyODRmNmQ0ZTg3In0%3D; cf_chl_prog=x13; cf_chl_2=20e65488113fefb; cf_chl_rc_m='
 stopDate = "2016-12-23"
 #stopDate = "2022-01-07"
 
@@ -16,9 +17,8 @@ def get_database():
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["SpotifyTop200"]
     csvCol = mydb["csv"]
-    lyricsCol = mydb["lyrics"]
 
-    return csvCol, lyricsCol
+    return csvCol
 
 
 def getAllDay():
@@ -47,9 +47,18 @@ def getAllDay():
         tempo = dt
         dates.append(str(dt))
     return dates
+def writeFile(fileName, content):
+    if content == 0:
+        print(Fore.RED + "For " + Fore.WHITE + fileName + Fore.RED + ", Content is empty:" + Fore.WHITE ,content)
+        return 0
 
+    file = open("Script/allCSV/" + fileName + ".csv", "w")
+    file.write(content)
+    file.close
 
-def fetchData(url, cookie):
+    oneCSVtoMongo(fileName)
+
+def fetchData(url, cookie, i, dates):
     headers = {
         'Cookie': cookie,
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -61,27 +70,21 @@ def fetchData(url, cookie):
         'Connection': 'keep-alive'
     }
     response = requests.request("GET", url, headers=headers)
-
+    
     if response.status_code == 200:
         tempo = response.text
         tempo = tempo.replace(
             ",,,\"Note that these figures are generated using a formula that protects against any artificial inflation of chart positions.\",\n", "")
         print(f"For {url}, OK")
+        writeFile(f"{dates[i+1]}--{dates[i]}", tempo)
+        if dates[i+1] == stopDate:
+            print(f"{time.perf_counter() - tic:0.1f} seconds")
         return tempo
     else:
-        print(f"error with {url}: something is wrong:", response.status_code)
+        print( Fore.RED + "error with " + Fore.WHITE + url + Fore.RED + ": something is wrong:" + Fore.WHITE, response.status_code)
+        if dates[i+1] == stopDate:
+            print(f"{time.perf_counter() - tic:0.1f} seconds")
         return 0
-
-
-def writeFile(fileName, content):
-    if content == 0:
-        print(f"For {fileName}, Content is empty:",content)
-        return 0
-
-    file = open("allCSV/" + fileName + ".csv", "w")
-    file.write(content)
-    file.close
-
 
 def getAllCSV(dates):
     InterruptedError = False
@@ -89,7 +92,9 @@ def getAllCSV(dates):
 
     while InterruptedError == False:
         url = f"https://spotifycharts.com/regional/global/weekly/{dates[i+1]}--{dates[i]}/download"
-        writeFile(f"{dates[i+1]}--{dates[i]}", fetchData(url, cookie))
+        
+        threading.Thread(target = fetchData, args = (url, cookie, i, dates)).start()
+        #fetchData(url, cookie, i, dates)
         i = i + 1
         
 
@@ -104,38 +109,36 @@ def getAllCSV(dates):
 
 
 def oneCSVtoMongo(fileName):
-    csvCol, lyricsCol = get_database()
+    csvCol = get_database()
     header = ["Position", "Track Name", "Artist", "Streams", "URL", "Date"]
-    csvfile = open(fileName, 'r')
-    reader = csv.DictReader(csvfile)
-
-    for each in reader:
-        row = {}
-
-        for field in header:
-
-            if field == "Date":
-
-                row[field] = fileName.replace(
-                    "./allCSV/", "").replace(".csv", "")
-            else:
-                row[field] = each[field]
-
-        csvCol.insert_one(row)
-    print(f"CSV: {fileName} in mongo")
-
-
-def allCSVtoMongo():
-    allFileName = os.listdir("./allCSV")
-    if allFileName == []:
-        print("Error, directory is empty or does not exist")
+    
+    fileName = "Script/allCSV/" + fileName + ".csv"
+    try: 
+        csvfile = open(fileName, 'r')
+    except:
+        print(Fore.RED + "Can't open file" + Fore.WHITE, fileName)
         return
-    i = 0
-    for fileName in allFileName:
-        i = i + 1
-        oneCSVtoMongo(f"./allCSV/{fileName}")
-        print(f"└─[ {i}/{len(allFileName)} ] -- {time.perf_counter() - tic:0.1f} seconds")
-    print("All CSV are in mongo")
+
+    
+    reader = csv.DictReader(csvfile)
+    
+    try: 
+        for each in reader:
+            row = {}
+
+            for field in header:
+
+                if field == "Date":
+
+                    row[field] = fileName.replace("Script/allCSV/", "").replace(".csv", "")
+                else:
+                    row[field] = each[field]
+
+            csvCol.insert_one(row)
+        print(f"CSV: {fileName} in mongo")
+    except:
+        print(Fore.RED + "CVS file can't be parsed" + Fore.WHITE , fileName)
+        return
 
 
 
