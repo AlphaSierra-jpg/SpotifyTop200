@@ -1,10 +1,6 @@
 import pymongo
-import re
 
-cookie = "pub_7452392cb34fc823d1671179d160cd104e9d"
-
-
-def testfunc(search):
+def searchInKeyWord(search):
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["SpotifyTop200"]
     lyrCol = mydb["lyrics"]
@@ -17,19 +13,3 @@ def testfunc(search):
             if search in x["keywords"][i].split():
                 print(x["Artist"], x["Track Name"])
                 print(x["keywords"])
-                
-            
-        
-                
-def test2():
-
-    reg = r'\s\(feat[\s\S]*\)'
-    txt = "Levitating (feat. DaBaby)"
-    output = re.sub(reg, '', txt), "a"
-    
-if __name__ == "__main__":
-    
-    testfunc()
-
-
- 
