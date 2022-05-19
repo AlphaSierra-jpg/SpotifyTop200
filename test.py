@@ -1,35 +1,48 @@
-import pymongo
-import re
+import Script.getMusic as getMusic
+import Script.getTrend as getTrend
 
-cookie = "pub_7452392cb34fc823d1671179d160cd104e9d"
+date = getMusic.getAllDay()
+dataPoint = []
+
+for i in range(0, len(date)):
+    dataPoint.append(i)
+
+from dash import Dash, dcc, html, Input, Output
+import plotly.express as px
+
+app = Dash(__name__)
 
 
-def testfunc(search):
-    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-    mydb = myclient["SpotifyTop200"]
-    lyrCol = mydb["lyrics"]
-
- 
-    for x in lyrCol.find({}, {"keywords": 1, "Track Name": 1, "Artist" : 1, "Date": 1, "Lyrics": 1}):
+app.layout = html.Div([
+    html.H4('Word in top 200 analyzer '),
+    dcc.Graph(id="time-series-chart"),
+    html.P("Tap the word"),
+    # dcc.Dropdown(
+    #     id="ticker",
+    #     options=["AMZN", "FB", "NFLX"],
+    #     value="AMZN",
+    #     clearable=False,
+    # ),
+    dcc.Textarea(
+        id='ticker',
+        value='love',
+        style={'width': 200, 'height': 20},
         
-        for i in range(len(x["keywords"])):
-           
-            if search in x["keywords"][i].split():
-                print(x["Artist"], x["Track Name"])
-                print(x["keywords"])
-                
-            
-        
-                
-def test2():
+    ),
+])
 
-    reg = r'\s\(feat[\s\S]*\)'
-    txt = "Levitating (feat. DaBaby)"
-    output = re.sub(reg, '', txt), "a"
-    
-if __name__ == "__main__":
-    
-    testfunc()
 
+@app.callback(
+    Output("time-series-chart", "figure"), 
+    Input("ticker", "value"))
+def display_time_series(word):
+
+    fig = px.line( x=date , y=getTrend.searchInKeyWord(word))
+    fig.update_xaxes(title_text='Date')
+    fig.update_yaxes(title_text='Occurence')
+    return fig
+
+
+app.run_server(debug=True)
 
  

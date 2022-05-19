@@ -30,6 +30,11 @@ if __name__ == "__main__":
                     dest='getCsv',
                     help='Feed CSV'
                     )
+    parser.add_argument('-g', '--graph',
+                    action='store_true',
+                    dest='showGraph',
+                    help='Get Graph'
+                    )
     args = parser.parse_args()
 
     if args.getCsv == True:
@@ -42,10 +47,13 @@ if __name__ == "__main__":
         Script.getMostUsedWord.addKeywords()
 
     try:
-        args.search
+        args.word
         Script.getTrend.searchInKeyWord(args.word)
     except:
         skip
+
+    if args.showGraph == True:
+        Script.getTrend.showGraph()
     
     
 
