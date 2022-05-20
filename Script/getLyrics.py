@@ -8,7 +8,7 @@ import re
 
 pool = ThreadPoolExecutor(max_workers=100)
 tic = time.perf_counter()
-token = "OXOfo-hXZSbr5k5_qp7UgUpqgM6C40jdH0q2QNZNBZ_FTPgQ9W5KCJSH6TSbe-MJqlTer-HA8FLwx_wHKD5QUw"
+
 howMany =  0
 maxMusic = 1000
 
@@ -33,27 +33,12 @@ def oneLyricsToMongo(lyrics, songName, artistName, Date, i):
         
     lyricsCol.insert_one(row)
 
-def getDBInfo():
+def getDBInfo(token):
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["SpotifyTop200"]
     csvCol = mydb["csv"]
     count = csvCol.count_documents({})
     i = 0
-
-
-        
-    # for x in csvCol.find({}, {"Track Name": 1, "Artist": 1, "Date": 1}):
-    #     i = i + 1
-        
-    #     try: 
-    #         if i > maxMusic:
-    #             return
-    #         print(f"{i}/{maxMusic}")
-    #         maximize =  maxMusic
-            
-    #     except:
-    #         print(f"{i}/{count}")
-    #         maximize =  count
 
     futures = [pool.submit(getLyrics, token, x["Track Name"], x["Artist"], x["Date"], count) for x in csvCol.find({}, {"Track Name": 1, "Artist": 1, "Date": 1})]
     wait(futures, return_when=ALL_COMPLETED)  
