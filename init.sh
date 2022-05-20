@@ -1,6 +1,6 @@
 mkdir database
 mkdir Script/allCSV
 
-docker-compose up
+pip install -r requirements.txt 
 
-python3 main.py
+docker-compose up

@@ -1,7 +1,7 @@
 import pymongo
 import Script.getMusic as getMusic
-from dash import Dash, dcc, html, Input, Output
-import plotly.express as px
+from dash import Dash, dcc, html, Input, Output, dash_table
+import plotly.graph_objects as go
 
 def searchInKeyWord(search):
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -57,27 +57,50 @@ app = Dash(__name__)
 
 
 app.layout = html.Div([
-    html.H4('Word in top 200 analyzer '),
+    html.H1('Word in top 200 analyzer', style={'font-family': 'Arial'}),
     dcc.Graph(id="time-series-chart"),
-    html.P("Tap the word"),
-    dcc.Textarea(
-        id='ticker',
-        value='love',
-        style={'width': 200, 'height': 20},
-        
-    ),
+    html.H3("Tap the word", style={'font-family': 'Arial'}),
+    dcc.Input(id="input1", type="text", placeholder="Word", style={'width': 200, 'height': 20, 'font-family': 'Arial', 'marginRight':'10px'}),
+    dcc.Input(id="input2", type="text", placeholder="Word2", style={'width': 200, 'height': 20, 'font-family': 'Arial'}),
+    html.Div([
+        html.H3("Some cool word", style={'font-family': 'Arial'}),
+        html.P("love", style={'font-family': 'Arial'}),
+        html.P("gun", style={'font-family': 'Arial'}),
+        html.P("girl", style={'font-family': 'Arial'}),
+        html.P("you", style={'font-family': 'Arial'}),
+        html.P("me", style={'font-family': 'Arial'}),
+        html.P("war", style={'font-family': 'Arial'}),
+        html.P("ex", style={'font-family': 'Arial'}),
+        html.P("ex", style={'font-family': 'Arial'}),
+        html.P("ex", style={'font-family': 'Arial'}),
+        html.P("ex", style={'font-family': 'Arial'})
+    ]),
+    html.Div([
+        dash_table.DataTable(
+            id='memory-table',
+            columns=[{'name': i, 'id': i} for i in range(10)],
+        ),
+    ])
+    
 ])
 
 
 @app.callback(
     Output("time-series-chart", "figure"), 
-    Input("ticker", "value"))
-def display_time_series(word):
+    Input("input1", "value"),
+    Input("input2", "value")
+    )
+def display_time_series(input1, input2):
+    fig = go.Figure()
 
-    fig = px.line( x=date , y=searchInKeyWord(word))
-    fig.update_xaxes(title_text='Date')
-    fig.update_yaxes(title_text='Occurence')
+    fig.add_trace(go.Scatter(x=date, y=searchInKeyWord(input1), name=input1, line=dict(color='blue', width=2)))
+    if input2 != None:
+        fig.add_trace(go.Scatter(x=date, y=searchInKeyWord(input2), name=input2, line=dict(color='firebrick', width=2)))
+
     return fig
+def makeArray():
+    
+    return
 
 def showGraph():
     app.run_server(debug=True)

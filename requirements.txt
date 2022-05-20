@@ -1,0 +1,7 @@
+pymongo
+colorama
+lyricsgenius
+multi_rake
+Dash
+plotly.express
+plotly 

@@ -3,7 +3,7 @@ from multi_rake import Rake
 import pymongo
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 
-pool = ThreadPoolExecutor(max_workers=50)
+pool = ThreadPoolExecutor(max_workers=200)
 
 def get_database():
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -39,13 +39,6 @@ def addKeywords():
     allMusic = lyricsCol.find({})
     ntracks = lyricsCol.count_documents({})
     i = 0
-    
-
-    # for music in allMusic:
-    #     i += 1
-
-
-    #     pool.submit(analyzeTexteAndUpdate, music["Track Name"], music["Artist"], music["Date"], i, ntracks)
     
     futures = [pool.submit(analyzeTexteAndUpdate, music["Track Name"], music["Artist"], music["Date"], i, ntracks) for music in allMusic]
     wait(futures, return_when=ALL_COMPLETED)  
