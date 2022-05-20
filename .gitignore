@@ -1,14 +1,16 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
-Script/allCSV/*
+
 
 journal/
 diagnostic.data/
+*.csv
 *.wt
 *.lock
 *.bson
 *.turtle
 WiredTiger
+test
 
 .DS_Store
